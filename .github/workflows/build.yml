@@ -44,3 +44,35 @@ jobs:
             release/*.AppImage
             release/*.deb
           if-no-files-found: error
+
+  # 태그로 실행됐을 때만: 세 OS 결과물을 모아 GitHub 릴리즈를 만든다
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - run: ls -la dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: PePe Zip ${{ github.ref_name }}
+          files: dist/*
+          body: |
+            ## 다운로드
+            | OS | 파일 |
+            |---|---|
+            | Windows (Intel/AMD) | `PePe Zip-Setup-*-x64.exe` |
+            | Windows (ARM) | `PePe Zip-Setup-*-arm64.exe` |
+            | macOS (Intel·Apple Silicon) | `*.dmg` |
+            | Linux | `*.AppImage` 또는 `*.deb` (x86_64 / arm64) |
+
+            ### 참고
+            - 코드 서명이 없는 빌드입니다. Windows SmartScreen 경고가 뜨면 "추가 정보 → 실행"을 누르세요.
+            - macOS: 처음 실행 시 앱을 우클릭 → 열기, 또는 `xattr -cr "/Applications/PePe Zip.app"`
+            - Linux AppImage: `chmod +x` 후 실행
+            - 압축 엔진: 7-Zip 26.03
