@@ -15,14 +15,15 @@ UI 는 Electron + React, 압축 엔진은 공식 **7-Zip 26.03** 콘솔(`7z.exe`
 | 스마트 풀기 | 최상위가 폴더 하나면 그대로, 여러 개면 "압축 파일 이름" 폴더를 만들어 푼다 |
 | 충돌 처리 | 덮어쓰기 / 건너뛰기 / 이름 바꿔 저장 (스테이징 폴더에 푼 뒤 옮기므로 취소·암호 오류 시 찌꺼기가 남지 않음) |
 | 인코딩 | ZIP 파일 이름 코드페이지 선택(CP949·UTF-8·Shift-JIS…), 새 ZIP 은 항상 UTF-8 이름 |
+| JNLP 런처 | `.jnlp` 열기 시 **내장 JRE(OpenJDK 8)**를 사용해 라이브러리(JAR) 다운로드·캐싱 및 Java GUI 앱 실행 (별도 Java 설치 불필요) |
 | OS 연동 | Windows 탐색기 우클릭 메뉴 + 연결 프로그램, macOS Finder 빠른 동작, Linux Nautilus·Nemo·Dolphin 메뉴 + `.desktop` 연결 |
 
 ## 개발
 
 ```bash
-npm install          # postinstall 에서 현재 OS 용 7-Zip 을 resources/bin 에 받는다
+npm install          # postinstall 에서 현재 OS 용 7-Zip 및 내장 JRE 를 resources 에 받는다
 npm run dev          # 개발 실행
-npm test             # 엔진·작업 통합 테스트 (실제 7z 로 22개 시나리오)
+npm test             # 엔진·작업·JNLP 통합 테스트 (실제 7z & 내장 JRE)
 ```
 
 ## 빌드

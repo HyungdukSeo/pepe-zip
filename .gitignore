@@ -3,3 +3,4 @@ out/
 release/
 .cache/
 resources/bin/
+resources/jre/

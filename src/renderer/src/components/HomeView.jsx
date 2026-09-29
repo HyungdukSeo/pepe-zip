@@ -18,7 +18,7 @@ export default function HomeView({ recent, onOpen, onOpenPath, onCompress, integ
             <Icon name="compress" size={18} /> 새로 압축하기
           </button>
         </div>
-        <p className="muted small formats">7Z · ZIP · RAR · TAR · GZ · XZ · BZ2 · ZST · ISO · CAB · WIM · ARJ · LZH 외 40여 가지 형식</p>
+        <p className="muted small formats">7Z · ZIP · RAR · TAR · GZ · XZ · BZ2 · ZST · ISO · CAB · WIM · JNLP(내장 JRE) 외 40여 가지 형식</p>
       </div>
 
       {integrationHint && (

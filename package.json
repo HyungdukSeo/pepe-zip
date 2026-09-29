@@ -7,9 +7,11 @@
   "author": "codeclaude",
   "license": "MIT",
   "scripts": {
-    "postinstall": "node scripts/fetch-7zip.mjs",
+    "postinstall": "node scripts/fetch-7zip.mjs && node scripts/fetch-jre.mjs",
     "fetch:7zip": "node scripts/fetch-7zip.mjs",
     "fetch:7zip:all": "node scripts/fetch-7zip.mjs --all",
+    "fetch:jre": "node scripts/fetch-jre.mjs",
+    "fetch:jre:all": "node scripts/fetch-jre.mjs --all",
     "icon": "node scripts/make-icon.mjs",
     "dev": "electron-vite dev",
     "start": "electron-vite preview",
@@ -65,10 +67,11 @@
           "lzh",
           "wim",
           "zipx",
-          "001"
+          "001",
+          "jnlp"
         ],
         "name": "Archive",
-        "description": "압축 파일",
+        "description": "압축 파일 및 JNLP",
         "role": "Viewer"
       }
     ],
@@ -86,6 +89,10 @@
         {
           "from": "resources/bin/win32-${arch}",
           "to": "bin"
+        },
+        {
+          "from": "resources/jre/win32-${arch}",
+          "to": "jre"
         }
       ],
       "artifactName": "${productName}-Setup-${version}-${arch}.${ext}"
@@ -103,18 +110,23 @@
         {
           "target": "dmg",
           "arch": [
-            "universal"
+            "arm64",
+            "x64"
           ]
         }
       ],
       "category": "public.app-category.utilities",
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
       "extraResources": [
         {
-          "from": "resources/bin/darwin-x64",
+          "from": "resources/bin/darwin-${arch}",
           "to": "bin"
+        },
+        {
+          "from": "resources/jre/darwin-${arch}",
+          "to": "jre"
         }
-      ],
-      "x64ArchFiles": "Contents/Resources/bin/7zz"
+      ]
     },
     "linux": {
       "target": [
@@ -138,6 +150,10 @@
         {
           "from": "resources/bin/linux-${arch}",
           "to": "bin"
+        },
+        {
+          "from": "resources/jre/linux-${arch}",
+          "to": "jre"
         }
       ],
       "mimeTypes": [

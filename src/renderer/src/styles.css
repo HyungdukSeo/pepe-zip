@@ -359,3 +359,292 @@ kbd { font: 11px var(--mono); color: var(--muted); margin-left: auto; }
   .tool { min-width: 38px; }
   .search { width: 170px; }
 }
+
+/* ───── JNLP 런처 창 ───── */
+.jnlp-window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  user-select: none;
+}
+.jnlp-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.jnlp-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.jnlp-title-meta {
+  flex: 1;
+  min-width: 0;
+}
+.jnlp-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.jnlp-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jnlp-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.jnlp-badge.ready {
+  background: var(--panel-2);
+  color: var(--muted);
+}
+.jnlp-badge.running {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+.jnlp-badge.done {
+  background: var(--sel);
+  color: var(--accent);
+}
+.jnlp-badge.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+}
+.jnlp-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.jnlp-vendor {
+  font-weight: 500;
+  color: var(--text);
+}
+.jnlp-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.jnlp-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.jnlp-step.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+.jnlp-step.completed {
+  color: var(--ok);
+}
+.jnlp-step-num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+.jnlp-step.active .jnlp-step-num {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.jnlp-step.completed .jnlp-step-num {
+  background: var(--ok);
+  color: #fff;
+  border-color: var(--ok);
+}
+.jnlp-step-line {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+  margin: 0 10px;
+}
+.jnlp-status-card {
+  padding: 12px 18px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.jnlp-status-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 13px;
+}
+.jnlp-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok);
+  animation: jnlpPulse 1.5s infinite;
+}
+@keyframes jnlpPulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.jnlp-jre-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.jnlp-meta-tag {
+  font-size: 11px;
+  background: var(--panel-2);
+  padding: 3px 7px;
+  border-radius: 4px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.jnlp-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+.jnlp-progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+}
+.jnlp-bar-bg {
+  height: 6px;
+  background: var(--panel-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.jnlp-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.2s;
+}
+.jnlp-error-box {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--danger);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.jnlp-console-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.jnlp-console-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 14px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 500;
+}
+.jnlp-console-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.jnlp-log-count {
+  font-size: 11px;
+  color: var(--muted);
+}
+.jnlp-console-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.jnlp-scroll-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.jnlp-console-body {
+  flex: 1;
+  overflow: auto;
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  background: #0f141c;
+  color: #c9d1d9;
+  user-select: text;
+}
+.jnlp-log-line {
+  display: flex;
+  gap: 8px;
+  word-break: break-all;
+}
+.jnlp-log-line.stdout { color: #f0f6fc; }
+.jnlp-log-line.stderr { color: #fca5a5; }
+.jnlp-log-line.error { color: #ef4444; font-weight: 600; }
+.jnlp-log-line.warn { color: #fbbf24; }
+.jnlp-log-line.success { color: #34d399; }
+.jnlp-log-time {
+  color: #555f6d;
+  flex-shrink: 0;
+  user-select: none;
+}
+.jnlp-log-text {
+  flex: 1;
+  white-space: pre-wrap;
+}
+.jnlp-log-empty {
+  color: #6e7681;
+  font-style: italic;
+  padding: 24px 0;
+  text-align: center;
+}
+.jnlp-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+}

@@ -9,7 +9,8 @@ import { TaskManager } from './tasks.js'
 import { defaultOutput } from './jobs.js'
 import { getSettings, setSettings, addRecent } from './settings.js'
 import { shellIntegration } from './shellIntegration.js'
-import { isSecondaryVolume, ARCHIVE_EXTS, formatById } from '../shared/formats.js'
+import { launchJnlpSession, stopJnlp, openJnlpCacheDir, activateJnlp } from './jnlp/jnlpRunner.js'
+import { findJava } from './jnlp/jreFinder.js'
 
 const IS_MAC = process.platform === 'darwin'
 
@@ -77,13 +78,14 @@ function bootstrap() {
   // ── 창 ──
   function createWindow(mode = 'full', firstAction) {
     const mini = mode === 'mini'
+    const jnlp = mode === 'jnlp'
     const win = new BrowserWindow({
-      width: mini ? 520 : 1120,
-      height: mini ? 300 : 720,
-      minWidth: mini ? 420 : 760,
-      minHeight: mini ? 200 : 480,
+      width: mini ? 520 : jnlp ? 680 : 1120,
+      height: mini ? 300 : jnlp ? 560 : 720,
+      minWidth: mini ? 420 : jnlp ? 540 : 760,
+      minHeight: mini ? 200 : jnlp ? 420 : 480,
       show: false,
-      title: 'PePe Zip',
+      title: jnlp ? 'PePe Zip - JNLP 런처' : 'PePe Zip',
       backgroundColor: nativeTheme.shouldUseDarkColors ? '#16181d' : '#f6f7f9',
       autoHideMenuBar: true,
       icon: iconPath(),
@@ -105,6 +107,7 @@ function bootstrap() {
       }
     })
     win.on('closed', () => {
+      if (mode === 'jnlp') stopJnlp(id)
       tasks.cancelWindow(id)
       windows.delete(id)
     })
@@ -132,7 +135,30 @@ function bootstrap() {
   const liveEntries = () => [...windows.values()].filter((w) => !w.win.isDestroyed())
   const getMini = () => liveEntries().find((w) => w.mode === 'mini') || createWindow('mini')
 
+  function openJnlpWindow(file) {
+    if (!file) return null
+    // 이미 같은 JNLP 파일을 열고 있는 창이 있으면 활성화
+    const existing = liveEntries().find((w) => w.mode === 'jnlp' && w.jnlpPath === file)
+    if (existing) {
+      if (existing.win.isMinimized()) existing.win.restore()
+      existing.win.focus()
+      return existing
+    }
+    // 대기 중인(파일이 지정되지 않은) JNLP 창이 있으면 재사용
+    const idle = liveEntries().find((w) => w.mode === 'jnlp' && !w.jnlpPath)
+    if (idle) {
+      idle.jnlpPath = file
+      sendAction(idle, { type: 'launch-jnlp', path: file })
+      return idle
+    }
+    // 새 창 생성 (firstAction 으로 queue 에 1개만 넣고 중복 전송 방지)
+    const entry = createWindow('jnlp', { type: 'launch-jnlp', path: file })
+    entry.jnlpPath = file
+    return entry
+  }
+
   function openArchiveWindow(file) {
+    if (file.toLowerCase().endsWith('.jnlp')) return openJnlpWindow(file)
     // 비어 있는(홈 화면) 전체 창이 있으면 재사용
     const idle = liveEntries().find((w) => w.mode === 'full' && !w.archive)
     const entry = idle || createWindow('full')
@@ -390,6 +416,44 @@ function bootstrap() {
       entry.win.close()
     })
     handle('window:newFull', () => void createWindow('full'))
+
+    // JNLP
+    handle('jnlp:launch', (e, path) => {
+      const caller = entryOf(e)
+      if (caller?.mode === 'jnlp') {
+        dlog('jnlp:launch ignored from jnlp window itself', path)
+        return false
+      }
+      openJnlpWindow(path)
+      return true
+    })
+    handle('jnlp:start', (e, path) => {
+      const wcId = e.sender.id
+      const sendEvent = (event) => {
+        if (!e.sender.isDestroyed()) {
+          e.sender.send('jnlp:event', event)
+        }
+      }
+      const s = getSettings()
+      return launchJnlpSession(path, wcId, sendEvent, { customJavaPath: s.jnlp?.customJavaPath })
+    })
+    handle('jnlp:stop', (e) => {
+      return stopJnlp(e.sender.id)
+    })
+    handle('jnlp:activate', (e) => {
+      return activateJnlp(e.sender.id)
+    })
+    handle('jnlp:openCache', (e) => {
+      return openJnlpCacheDir(e.sender.id)
+    })
+    handle('jnlp:getJreInfo', () => {
+      try {
+        const s = getSettings()
+        return { ok: true, jre: findJava({ customPath: s.jnlp?.customJavaPath }) }
+      } catch (err) {
+        return { ok: false, error: err.message }
+      }
+    })
   }
 }
 

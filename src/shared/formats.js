@@ -4,7 +4,7 @@
 export const ARCHIVE_EXTS = [
   '7z', 'zip', 'rar', 'tar', 'gz', 'tgz', 'bz2', 'tbz2', 'tbz', 'xz', 'txz', 'zst', 'tzst',
   'lzma', 'tlz', 'z', 'taz', 'iso', 'cab', 'arj', 'lzh', 'lha', 'wim', 'cpio', 'rpm', 'deb',
-  'jar', 'war', 'apk', 'xpi', 'zipx', '001', 'dmg', 'xar', 'squashfs', 'vhd', 'vhdx', 'udf'
+  'jar', 'war', 'apk', 'xpi', 'zipx', '001', 'dmg', 'xar', 'squashfs', 'vhd', 'vhdx', 'udf', 'jnlp'
 ]
 
 // 파일 연결·우클릭 "풀기" 대상으로 등록할 흔한 확장자 (전부 등록하면 OS 가 지저분해진다)

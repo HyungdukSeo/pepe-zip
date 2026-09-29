@@ -7,6 +7,7 @@ import CompressDialog from './components/CompressDialog.jsx'
 import ExtractDialog from './components/ExtractDialog.jsx'
 import SettingsDialog from './components/SettingsDialog.jsx'
 import TaskList from './components/TaskList.jsx'
+import JnlpWindow from './components/JnlpWindow.jsx'
 import { isArchiveName, CODEPAGES } from '@shared/formats.js'
 import { basename, dirname, setPlatform, buildTree, collectPaths, anyEncrypted, fmtSize, fmtCount } from './lib/util.js'
 
@@ -38,13 +39,22 @@ function App() {
   const [taskPanelOpen, setTaskPanelOpen] = useState(true)
   const [integrationHint, setIntegrationHint] = useState(null)
 
+  const initialMode = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('mode') || 'full' : 'full'
+  const isJnlpMode = (boot ? boot.mode : initialMode) === 'jnlp'
   const mini = boot?.mode === 'mini'
+  const jnlp = isJnlpMode
+  const [initialJnlpPath, setInitialJnlpPath] = useState(null)
   const S = useRef({})
   S.current = { settings, archive, cwdKey, boot, tasks }
 
   // ───── 압축 파일 열기/새로고침 ─────
   const openArchive = useCallback(
     async (path, { password, keepCwd = false, codepage, headerEncrypted = false } = {}) => {
+      if (path.toLowerCase().endsWith('.jnlp')) {
+        if (!isJnlpMode) return pz.launchJnlp(path)
+        setInitialJnlpPath(path)
+        return
+      }
       setLoading(path)
       const cp = codepage ?? S.current.archive?.codepage ?? S.current.settings?.extract.codepage ?? ''
       try {
@@ -64,7 +74,7 @@ function App() {
         setLoading((l) => (l === path ? null : l))
       }
     },
-    [prompt, toast]
+    [prompt, toast, isJnlpMode]
   )
   const reload = () => {
     const a = S.current.archive
@@ -80,7 +90,17 @@ function App() {
 
   // ───── 메인에서 온 동작 (우클릭 메뉴, 파일 연결 등) ─────
   const handleAction = (a) => {
-    if (a.type === 'open') openArchive(a.path)
+    if (a.type === 'open') {
+      if (a.path?.toLowerCase().endsWith('.jnlp')) {
+        if (!isJnlpMode) pz.launchJnlp(a.path)
+        else setInitialJnlpPath(a.path)
+      } else {
+        openArchive(a.path)
+      }
+    }
+    else if (a.type === 'launch-jnlp') {
+      setInitialJnlpPath(a.path)
+    }
     else if (a.type === 'compress-dialog') setDialog({ type: 'compress', files: a.files })
     else if (a.type === 'extract-dialog') setDialog({ type: 'extract', archives: a.archives })
   }
@@ -112,7 +132,9 @@ function App() {
       setTasks(b.tasks)
       // 첫 렌더 전에 처리하므로 ref 에도 바로 넣어 둔다
       S.current = { ...S.current, settings: b.settings, boot: b, tasks: b.tasks }
-      b.actions.forEach((a) => actionRef.current(a))
+      const jnlpAct = b.actions.find((a) => a.type === 'launch-jnlp')
+      if (jnlpAct?.path) setInitialJnlpPath(jnlpAct.path)
+      b.actions.filter((a) => a.type !== 'launch-jnlp').forEach((a) => actionRef.current(a))
       if (b.mode === 'full' && !b.settings.integrationPrompted) {
         pz.integrationStatus().then((st) => {
           if (!st.contextMenu)
@@ -322,6 +344,9 @@ function App() {
     if (mini) return
     const paths = [...e.dataTransfer.files].map((f) => pz.pathForFile(f)).filter((p) => p && !p.startsWith(boot.tempRoot))
     if (!paths.length) return
+    if (paths.length === 1 && paths[0].toLowerCase().endsWith('.jnlp')) {
+      return pz.launchJnlp(paths[0])
+    }
     const oneArchive = paths.length === 1 && isArchiveName(basename(paths[0]))
     if (archive) {
       if (oneArchive) {
@@ -356,7 +381,13 @@ function App() {
 
   const openDialog = async () => {
     const files = await pz.openArchiveDialog()
-    if (files[0]) openArchive(files[0])
+    if (files[0]) {
+      if (files[0].toLowerCase().endsWith('.jnlp')) {
+        pz.launchJnlp(files[0])
+      } else {
+        openArchive(files[0])
+      }
+    }
     // 여러 개 고르면 나머지는 새 창에서 연다 — 메인이 --open 으로 처리
     if (files.length > 1) toast('info', '첫 번째 파일만 열었습니다')
   }
@@ -367,6 +398,10 @@ function App() {
   }
 
   if (!boot || !settings) return <div className="boot" />
+
+  if (jnlp) {
+    return <JnlpWindow initialPath={initialJnlpPath} />
+  }
 
   // ───── 진행 창 ─────
   if (mini) {

@@ -155,5 +155,48 @@ await t('기존 결과물 + rename → "이름 (2)"', async () => {
   ok(r.output.endsWith('aes (2).zip'), r.output)
 })
 
+const { parseJnlp } = await import('../src/main/jnlp/jnlpParser.js')
+const { findJava } = await import('../src/main/jnlp/jreFinder.js')
+
+await t('JNLP XML 파싱 테스트', async () => {
+  const sampleXml = `<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0+" codebase="http://ktc.example.com/app/" href="test.jnlp">
+  <information>
+    <title>KTC Test App</title>
+    <vendor>KTC Co.</vendor>
+    <description>테스트용 JNLP 앱</description>
+  </information>
+  <security><all-permissions/></security>
+  <resources>
+    <j2se version="1.8+" java-vm-args="-Xmx512m"/>
+    <jar href="lib/main.jar" main="true"/>
+    <jar href="lib/helper.jar"/>
+    <property name="app.mode" value="client"/>
+  </resources>
+  <application-desc main-class="com.ktc.Main">
+    <argument>--server=10.0.0.1</argument>
+  </application-desc>
+</jnlp>`
+
+  const parsed = parseJnlp(sampleXml)
+  ok(parsed.title === 'KTC Test App', `title: ${parsed.title}`)
+  ok(parsed.vendor === 'KTC Co.', `vendor: ${parsed.vendor}`)
+  ok(parsed.mainClass === 'com.ktc.Main', `mainClass: ${parsed.mainClass}`)
+  ok(parsed.allPermissions === true, 'allPermissions')
+  ok(parsed.jars.length === 2, `jars: ${parsed.jars.length}`)
+  ok(parsed.jars[0].url === 'http://ktc.example.com/app/lib/main.jar', `jar url: ${parsed.jars[0].url}`)
+  ok(parsed.properties['app.mode'] === 'client', `prop: ${parsed.properties['app.mode']}`)
+  ok(parsed.args[0] === '--server=10.0.0.1', `arg: ${parsed.args[0]}`)
+  ok(parsed.javaVmArgs.includes('-Xmx512m'), `vmargs: ${parsed.javaVmArgs}`)
+})
+
+await t('앱 내장 JRE 검색 및 버전 확인', async () => {
+  const jre = findJava()
+  ok(jre && jre.path, 'jre found')
+  ok(jre.version && jre.version.startsWith('1.8'), `jre version: ${jre.version}`)
+  ok(jre.isBundled === true, `isBundled: ${jre.isBundled}`)
+  console.log(`    (감지된 JRE: ${jre.source} / ${jre.path} / ${jre.version})`)
+})
+
 console.log(`\n${pass} passed, ${fail} failed`)
 app.exit(fail ? 1 : 0)

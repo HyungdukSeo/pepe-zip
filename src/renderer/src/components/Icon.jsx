@@ -26,7 +26,11 @@ const P = {
   retry: 'M4 4v6h6M20 20v-6h-6M5 15a7 7 0 0 0 12.9 2M19 9A7 7 0 0 0 6.1 7',
   edit: 'M4 20h4L19 9l-4-4L4 16v4ZM14 6l4 4',
   window: 'M4 5h16v14H4zM4 9h16',
-  shield: 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z'
+  shield: 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z',
+  coffee: 'M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8ZM6 1v3M10 1v3M14 1v3',
+  play: 'M5 3l14 9-14 9V3z',
+  stop: 'M6 6h12v12H6z',
+  terminal: 'M4 17l6-6-6-6M12 19h8'
 }
 
 export default function Icon({ name, size = 18, stroke = 1.8, className, style }) {

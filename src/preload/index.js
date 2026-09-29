@@ -54,6 +54,15 @@ contextBridge.exposeInMainWorld('pz', {
   closeWindow: (force) => call('window:close', force),
   newWindow: () => call('window:newFull'),
 
+  // JNLP
+  launchJnlp: (p) => call('jnlp:launch', p),
+  startJnlp: (p) => call('jnlp:start', p),
+  stopJnlp: () => call('jnlp:stop'),
+  activateJnlp: () => call('jnlp:activate'),
+  openJnlpCache: () => call('jnlp:openCache'),
+  getJreInfo: () => call('jnlp:getJreInfo'),
+  onJnlpEvent: on('jnlp:event'),
+
   // Electron 32+ 에서 File.path 가 사라져 드롭한 파일의 경로는 이걸로 얻는다
   pathForFile: (f) => webUtils.getPathForFile(f),
 
