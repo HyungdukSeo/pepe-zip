@@ -1,0 +1,157 @@
+{
+  "name": "pepe-zip",
+  "productName": "PePe Zip",
+  "version": "0.1.0",
+  "description": "Windows·macOS·Linux 크로스 플랫폼 압축 프로그램 (7-Zip 엔진)",
+  "main": "out/main/index.js",
+  "author": "codeclaude",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "node scripts/fetch-7zip.mjs",
+    "fetch:7zip": "node scripts/fetch-7zip.mjs",
+    "fetch:7zip:all": "node scripts/fetch-7zip.mjs --all",
+    "icon": "node scripts/make-icon.mjs",
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "electron-vite build && electron-builder",
+    "build:dir": "electron-vite build && electron-builder --dir",
+    "build:win": "electron-vite build && electron-builder --win",
+    "build:mac": "electron-vite build && electron-builder --mac",
+    "build:linux": "electron-vite build && electron-builder --linux",
+    "test": "electron scripts/selftest.mjs"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "vite": "^7.3.6"
+  },
+  "build": {
+    "appId": "com.codeclaude.pepezip",
+    "productName": "PePe Zip",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "fileAssociations": [
+      {
+        "ext": [
+          "7z",
+          "zip",
+          "rar",
+          "tar",
+          "gz",
+          "tgz",
+          "bz2",
+          "tbz2",
+          "xz",
+          "txz",
+          "zst",
+          "iso",
+          "cab",
+          "arj",
+          "lzh",
+          "wim",
+          "zipx",
+          "001"
+        ],
+        "name": "Archive",
+        "description": "압축 파일",
+        "role": "Viewer"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "extraResources": [
+        {
+          "from": "resources/bin/win32-${arch}",
+          "to": "bin"
+        }
+      ],
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "PePe Zip",
+      "include": "build/installer.nsh",
+      "buildUniversalInstaller": false
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "category": "public.app-category.utilities",
+      "extraResources": [
+        {
+          "from": "resources/bin/darwin-x64",
+          "to": "bin"
+        }
+      ],
+      "x64ArchFiles": "Contents/Resources/bin/7zz"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "extraResources": [
+        {
+          "from": "resources/bin/linux-${arch}",
+          "to": "bin"
+        }
+      ],
+      "mimeTypes": [
+        "application/zip",
+        "application/x-7z-compressed",
+        "application/vnd.rar",
+        "application/x-tar",
+        "application/gzip",
+        "application/x-compressed-tar",
+        "application/x-xz",
+        "application/x-bzip2"
+      ],
+      "maintainer": "codeclaude <codeclaude.core3@ipageon.com>",
+      "executableName": "pepe-zip"
+    }
+  }
+}
