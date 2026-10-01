@@ -198,5 +198,58 @@ await t('앱 내장 JRE 검색 및 버전 확인', async () => {
   console.log(`    (감지된 JRE: ${jre.source} / ${jre.path} / ${jre.version})`)
 })
 
+await t('작업 이력 관리 (압축/자바 런처 분할, 중복 제거, 최신순 배치, 최대 10개 제한)', async () => {
+  const settingsModule = await import('../src/main/settings.js')
+  const { addRecent, addRecentJnlp, removeRecent, removeRecentJnlp, clearRecent, clearRecentJnlp, getSettings } = settingsModule
+
+  // 1. 초기화
+  clearRecent()
+  clearRecentJnlp()
+  let s = getSettings()
+  ok(s.recent.length === 0, 'recent cleared')
+  ok(s.recentJnlp.length === 0, 'recentJnlp cleared')
+
+  // 2. 압축 파일 이력 추가 및 중복 제거, 최신순 정렬
+  addRecent('/path/to/archive1.zip')
+  addRecent('/path/to/archive2.7z')
+  addRecent('/path/to/archive1.zip') // 중복 추가 -> 맨 위로 이동해야 함
+  s = getSettings()
+  ok(s.recent.length === 2, `archive count: ${s.recent.length}`)
+  ok(s.recent[0] === '/path/to/archive1.zip', 'archive1 at top')
+  ok(s.recent[1] === '/path/to/archive2.7z', 'archive2 at second')
+
+  // 3. 12개 추가 시 최대 10개로 제한 확인
+  for (let i = 3; i <= 15; i++) {
+    addRecent(`/path/to/archive${i}.zip`)
+  }
+  s = getSettings()
+  ok(s.recent.length === 10, `archive max 10: ${s.recent.length}`)
+  ok(s.recent[0] === '/path/to/archive15.zip', 'latest archive at top')
+  ok(!s.recent.includes('/path/to/archive1.zip'), 'oldest evicted')
+
+  // 4. 자바 런처 이력 추가 및 중복 제거, 최신순 정렬, 최대 10개 확인
+  addRecentJnlp('/path/to/app1.jnlp')
+  addRecentJnlp('/path/to/app2.jnlp')
+  addRecentJnlp('/path/to/app1.jnlp') // 중복 재실행 -> 맨 위로
+  s = getSettings()
+  ok(s.recentJnlp.length === 2, `jnlp count: ${s.recentJnlp.length}`)
+  ok(s.recentJnlp[0] === '/path/to/app1.jnlp', 'app1 at top')
+  ok(s.recentJnlp[1] === '/path/to/app2.jnlp', 'app2 at second')
+
+  for (let i = 3; i <= 15; i++) {
+    addRecentJnlp(`/path/to/app${i}.jnlp`)
+  }
+  s = getSettings()
+  ok(s.recentJnlp.length === 10, `jnlp max 10: ${s.recentJnlp.length}`)
+  ok(s.recentJnlp[0] === '/path/to/app15.jnlp', 'latest jnlp at top')
+
+  // 5. 개별 항목 삭제
+  removeRecentJnlp('/path/to/app15.jnlp')
+  s = getSettings()
+  ok(s.recentJnlp.length === 9, 'deleted 1 item')
+  ok(s.recentJnlp[0] === '/path/to/app14.jnlp', 'new top item')
+})
+
 console.log(`\n${pass} passed, ${fail} failed`)
 app.exit(fail ? 1 : 0)
+

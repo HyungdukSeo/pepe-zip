@@ -47,13 +47,56 @@ function App() {
   const S = useRef({})
   S.current = { settings, archive, cwdKey, boot, tasks }
 
+  // ───── JNLP 실행 및 최근 기록 관리 ─────
+  const launchJnlp = useCallback(
+    (path) => {
+      if (!path) return
+      pz.addRecentJnlp?.(path)
+        .then((newSettings) => {
+          if (newSettings) setSettings(newSettings)
+        })
+        .catch(() => {})
+      setSettings((s) => ({
+        ...s,
+        recentJnlp: [path, ...(s.recentJnlp || []).filter((p) => p !== path)].slice(0, 10)
+      }))
+      if (!isJnlpMode) pz.launchJnlp(path)
+      else setInitialJnlpPath(path)
+    },
+    [isJnlpMode]
+  )
+
+  const removeRecentItem = useCallback((path, type) => {
+    pz.removeRecent?.(path, type)
+      .then((newSettings) => {
+        if (newSettings) setSettings(newSettings)
+      })
+      .catch(() => {})
+    setSettings((s) => {
+      if (type === 'jnlp') {
+        return { ...s, recentJnlp: (s.recentJnlp || []).filter((p) => p !== path) }
+      }
+      return { ...s, recent: (s.recent || []).filter((p) => p !== path) }
+    })
+  }, [])
+
+  const clearRecentList = useCallback((type) => {
+    pz.clearRecent?.(type)
+      .then((newSettings) => {
+        if (newSettings) setSettings(newSettings)
+      })
+      .catch(() => {})
+    setSettings((s) => {
+      if (type === 'jnlp') return { ...s, recentJnlp: [] }
+      return { ...s, recent: [] }
+    })
+  }, [])
+
   // ───── 압축 파일 열기/새로고침 ─────
   const openArchive = useCallback(
     async (path, { password, keepCwd = false, codepage, headerEncrypted = false } = {}) => {
       if (path.toLowerCase().endsWith('.jnlp')) {
-        if (!isJnlpMode) return pz.launchJnlp(path)
-        setInitialJnlpPath(path)
-        return
+        return launchJnlp(path)
       }
       setLoading(path)
       const cp = codepage ?? S.current.archive?.codepage ?? S.current.settings?.extract.codepage ?? ''
@@ -64,7 +107,7 @@ function App() {
         if (!keepCwd || !tree.byKey.has(S.current.cwdKey)) setCwdKey('')
         setSelection(new Set())
         document.title = `${basename(path)} - PePe Zip`
-        setSettings((s) => ({ ...s, recent: [path, ...s.recent.filter((p) => p !== path)].slice(0, 12) }))
+        setSettings((s) => ({ ...s, recent: [path, ...(s.recent || []).filter((p) => p !== path)].slice(0, 10) }))
       } catch (e) {
         if (e.kind === 'password') {
           const pw = await prompt.password({ name: basename(path), wrong: !!password })
@@ -74,7 +117,7 @@ function App() {
         setLoading((l) => (l === path ? null : l))
       }
     },
-    [prompt, toast, isJnlpMode]
+    [prompt, toast, launchJnlp]
   )
   const reload = () => {
     const a = S.current.archive
@@ -92,14 +135,13 @@ function App() {
   const handleAction = (a) => {
     if (a.type === 'open') {
       if (a.path?.toLowerCase().endsWith('.jnlp')) {
-        if (!isJnlpMode) pz.launchJnlp(a.path)
-        else setInitialJnlpPath(a.path)
+        launchJnlp(a.path)
       } else {
         openArchive(a.path)
       }
     }
     else if (a.type === 'launch-jnlp') {
-      setInitialJnlpPath(a.path)
+      launchJnlp(a.path)
     }
     else if (a.type === 'compress-dialog') setDialog({ type: 'compress', files: a.files })
     else if (a.type === 'extract-dialog') setDialog({ type: 'extract', archives: a.archives })
@@ -345,7 +387,7 @@ function App() {
     const paths = [...e.dataTransfer.files].map((f) => pz.pathForFile(f)).filter((p) => p && !p.startsWith(boot.tempRoot))
     if (!paths.length) return
     if (paths.length === 1 && paths[0].toLowerCase().endsWith('.jnlp')) {
-      return pz.launchJnlp(paths[0])
+      return launchJnlp(paths[0])
     }
     const oneArchive = paths.length === 1 && isArchiveName(basename(paths[0]))
     if (archive) {
@@ -383,7 +425,7 @@ function App() {
     const files = await pz.openArchiveDialog()
     if (files[0]) {
       if (files[0].toLowerCase().endsWith('.jnlp')) {
-        pz.launchJnlp(files[0])
+        launchJnlp(files[0])
       } else {
         openArchive(files[0])
       }
@@ -504,9 +546,13 @@ function App() {
         )}
         {!loading && !hasArchive && (
           <HomeView
-            recent={settings.recent}
+            recent={settings.recent || []}
+            recentJnlp={settings.recentJnlp || []}
             onOpen={openDialog}
             onOpenPath={(p) => openArchive(p)}
+            onLaunchJnlp={launchJnlp}
+            onRemoveRecent={removeRecentItem}
+            onClearRecent={clearRecentList}
             onCompress={() => setDialog({ type: 'compress', files: [] })}
             integrationHint={integrationHint}
             onSetupIntegration={async () => {

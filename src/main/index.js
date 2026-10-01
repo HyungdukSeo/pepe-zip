@@ -7,7 +7,16 @@ import os from 'node:os'
 import * as sz from './sevenzip.js'
 import { TaskManager } from './tasks.js'
 import { defaultOutput } from './jobs.js'
-import { getSettings, setSettings, addRecent } from './settings.js'
+import {
+  getSettings,
+  setSettings,
+  addRecent,
+  addRecentJnlp,
+  removeRecent,
+  removeRecentJnlp,
+  clearRecent,
+  clearRecentJnlp
+} from './settings.js'
 import { shellIntegration } from './shellIntegration.js'
 import { launchJnlpSession, stopJnlp, openJnlpCacheDir, activateJnlp } from './jnlp/jnlpRunner.js'
 import { findJava } from './jnlp/jreFinder.js'
@@ -137,6 +146,7 @@ function bootstrap() {
 
   function openJnlpWindow(file) {
     if (!file) return null
+    addRecentJnlp(file)
     // 이미 같은 JNLP 파일을 열고 있는 창이 있으면 활성화
     const existing = liveEntries().find((w) => w.mode === 'jnlp' && w.jnlpPath === file)
     if (existing) {
@@ -159,6 +169,7 @@ function bootstrap() {
 
   function openArchiveWindow(file) {
     if (file.toLowerCase().endsWith('.jnlp')) return openJnlpWindow(file)
+    addRecent(file)
     // 비어 있는(홈 화면) 전체 창이 있으면 재사용
     const idle = liveEntries().find((w) => w.mode === 'full' && !w.archive)
     const entry = idle || createWindow('full')
@@ -393,6 +404,16 @@ function bootstrap() {
       const s = setSettings(patch)
       if (patch.theme) nativeTheme.themeSource = s.theme
       return s
+    })
+
+    handle('recent:remove', (_e, { path, type }) => {
+      return type === 'jnlp' ? removeRecentJnlp(path) : removeRecent(path)
+    })
+    handle('recent:clear', (_e, type) => {
+      return type === 'jnlp' ? clearRecentJnlp() : clearRecent()
+    })
+    handle('recent:addJnlp', (_e, path) => {
+      return addRecentJnlp(path)
     })
 
     handle('shell:status', () => shellIntegration.status())

@@ -8,7 +8,8 @@ const DEFAULTS = {
   compress: { format: 'zip', level: 5, zipCrypto: false, encryptNames: true, solid: true, openFolder: false },
   extract: { mode: 'smart', overwrite: 'overwrite', codepage: '', openFolder: true },
   autoCloseProgress: true,
-  recent: []
+  recent: [],
+  recentJnlp: []
 }
 
 let cache
@@ -44,6 +45,35 @@ export function setSettings(patch) {
 }
 
 export function addRecent(path) {
-  const recent = [path, ...getSettings().recent.filter((p) => p !== path)].slice(0, 12)
+  if (!path) return getSettings()
+  const current = getSettings().recent || []
+  const recent = [path, ...current.filter((p) => p !== path)].slice(0, 10)
   return setSettings({ recent })
+}
+
+export function removeRecent(path) {
+  if (!path) return getSettings()
+  const current = getSettings().recent || []
+  return setSettings({ recent: current.filter((p) => p !== path) })
+}
+
+export function clearRecent() {
+  return setSettings({ recent: [] })
+}
+
+export function addRecentJnlp(path) {
+  if (!path) return getSettings()
+  const current = getSettings().recentJnlp || []
+  const recentJnlp = [path, ...current.filter((p) => p !== path)].slice(0, 10)
+  return setSettings({ recentJnlp })
+}
+
+export function removeRecentJnlp(path) {
+  if (!path) return getSettings()
+  const current = getSettings().recentJnlp || []
+  return setSettings({ recentJnlp: current.filter((p) => p !== path) })
+}
+
+export function clearRecentJnlp() {
+  return setSettings({ recentJnlp: [] })
 }

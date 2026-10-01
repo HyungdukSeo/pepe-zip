@@ -44,6 +44,9 @@ contextBridge.exposeInMainWorld('pz', {
 
   getSettings: () => call('settings:get'),
   setSettings: (patch) => call('settings:set', patch),
+  addRecentJnlp: (p) => call('recent:addJnlp', p),
+  removeRecent: (p, type) => call('recent:remove', { path: p, type }),
+  clearRecent: (type) => call('recent:clear', type),
 
   integrationStatus: () => call('shell:status'),
   integrationInstall: (o) => call('shell:install', o),
